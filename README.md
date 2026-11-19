@@ -1,55 +1,146 @@
 # PostgreSQL Student Course Registration Database
 
 **Course:** CSCE 4355 – Database Administration  
-**Team:** Veronica Tawfik and Jacob Lutt  
+**Team Members:** Veronica Tawfik and Jacob Lutt  
 **DBMS:** PostgreSQL  
-**Management tool:** pgAdmin 4
+**Management Tool:** pgAdmin 4
 
-## Project overview
-This project demonstrates a small student course-registration database and core database-administration tasks: relational design, role-based permissions, query-plan comparison with `EXPLAIN ANALYZE`, and backup/recovery verification.
+## 1. Project Overview
 
-All records in this project are fictional. Do not add real student information, passwords, or private connection details to this repository.
+This project implements a Student Course Registration Database using PostgreSQL. It demonstrates relational database design and database administration concepts, including table creation, sample data generation, role-based access control, query optimization, and database backup and recovery.
 
-## Prerequisites
-- PostgreSQL installed and running
-- pgAdmin 4 (or `psql`)
-- A PostgreSQL account with permission to create tables and roles for the security exercise
+All student and course records are fictional and are used for educational and testing purposes.
 
-## Setup
+## 2. Project Objectives
+
+- Design a relational database for student course registration.
+- Implement primary keys, foreign keys, unique constraints, and check constraints.
+- Populate the database with fictional sample data.
+- Create administrator and limited-access database roles.
+- Test authorized and unauthorized database operations.
+- Evaluate query performance before and after indexing.
+- Perform a database backup and restore it into a separate test database.
+
+## 3. Technologies Used
+
+- PostgreSQL
+- pgAdmin 4
+- SQL
+- GitHub
+
+## 4. Database Structure
+
+The database is named `student_course_registration` and contains three main tables:
+
+| Table | Description |
+|---|---|
+| Students | Stores fictional student information. |
+| Courses | Stores course codes, names, and credit hours. |
+| Registrations | Connects students to courses and stores registration dates and statuses. |
+
+The Registrations table connects Students and Courses through foreign keys.
+
+## 5. Sample Data
+
+The database contains:
+
+- 10,000 fictional students
+- 100 fictional courses
+- 100,000 registration records
+
+## 6. Security Implementation
+
+Two login roles were created:
+
+- `course_admin`: Administrator role with privileges to manage project database objects and data.
+- `registration_user`: Limited-access role that can view students and courses and view, insert, and update registrations.
+
+Permission testing verified that the registration user could perform authorized operations but could not delete registrations or modify student and course records.
+
+Passwords are configured locally and are not stored in this repository.
+
+## 7. Performance Optimization
+
+Query performance was evaluated using PostgreSQL `EXPLAIN (ANALYZE, BUFFERS)`.
+
+An index was created on `registrations.registration_date`.
+
+The recorded execution times were:
+
+| Measurement | Before Index | After Index |
+|---|---:|---:|
+| Scan method | Sequential Scan | Bitmap Heap Scan |
+| Execution time | 42.201 ms | 1.185 ms |
+| Rows returned | 280 | 280 |
+
+The observed execution time decreased by approximately 97.2% in this test.
+
+## 8. Backup and Recovery
+
+A custom-format PostgreSQL backup was created using pgAdmin 4. The backup was restored into a separate database named `student_course_restore_test`.
+
+The restored database was verified using record counts and SQL join queries.
+
+## 9. Repository Structure
+
+- `sql/` — Database creation, sample data, security, performance, and verification scripts.
+- `docs/` — Screenshots, architecture diagram, and final project report.
+- `tests/` — Permission-testing instructions.
+- `demo/` — Technical demonstration script and video link.
+- `backup/` — Backup documentation.
+
+## 10. Setup and Execution
+
+### Prerequisites
+
+- PostgreSQL installed and running.
+- pgAdmin 4 or `psql`.
+- An administrator account with permission to create tables and database roles.
+
+### Setup Instructions
+
 1. Open pgAdmin 4 and connect to your PostgreSQL server.
-2. Create a database named `course_registration_db`.
-3. Select that database, open **Query Tool**, and run these scripts in order:
-   - `sql/01_create_schema.sql`
-   - `sql/02_sample_data.sql`
-   - `sql/03_roles_permissions.sql`
-   - `sql/04_index_performance.sql`
-4. Run `sql/05_verification.sql` to check the tables and sample records.
+2. Create a database named `student_course_registration`.
+3. Open Query Tool for that database.
+4. Execute the SQL scripts in the following order:
 
-Run the scripts as a database owner or administrator. The role script requires permission to create roles and grant privileges. See the comments in that file before running it.
+   1. `sql/01_create_schema.sql`
+   2. `sql/02_sample_data.sql`
+   3. `sql/03_roles_permissions.sql`
+   4. `sql/04_index_performance.sql`
+   5. `sql/05_verification.sql`
 
-## Project files
-- `sql/01_create_schema.sql` — creates students, courses, and registrations.
-- `sql/02_sample_data.sql` — inserts fictional sample records.
-- `sql/03_roles_permissions.sql` — creates group roles and grants limited permissions.
-- `sql/04_index_performance.sql` — compares query plans before and after an index.
-- `sql/05_verification.sql` — provides checks for data and relationships.
-- `tests/permission_test_guide.md` — step-by-step permission test instructions.
-- `docs/` — store the proposal, final report, screenshots, and architecture diagram.
-- `demo/` — store the demonstration outline and script.
+5. Follow the permission testing instructions in `tests/permission_test_guide.md`.
+6. Perform backup and restore testing using pgAdmin 4.
 
-## Security test note
-The SQL creates `course_admin` and `registration_user` as **NOLOGIN group roles**. It does not create passwords or login accounts. For the demonstration, use `SET ROLE registration_user` from an authorized administrator session after the role has been granted to that session's login. Do not commit passwords to GitHub.
+**Important:** The sample data script is intended to be executed once on an empty database. Review the comments in each script before execution. The role script requires suitable administrative privileges. Configure passwords locally; never commit passwords to GitHub.
 
-## Performance test note
-PostgreSQL may choose a sequential scan for a small table even after an index is created. Record the actual `EXPLAIN ANALYZE` output and explain what happened; do not claim an improvement unless your measurements show one.
+## 11. Team Contributions
 
-## Backup and restore
-Use pgAdmin's Backup and Restore features, or PostgreSQL's `pg_dump` and `pg_restore` commands. Restore to a separate test database, not over the original project database. Follow the verification checklist in `sql/05_verification.sql` and record your actual results in the final report.
+**Veronica Tawfik**
+- Database schema and table implementation.
+- Fictional sample data.
+- Database roles and permissions.
+- Related report and demonstration sections.
 
-## Team contributions
-- **Veronica Tawfik:** schema, sample data, roles/permissions, and related report/demo sections.
-- **Jacob Lutt:** index performance, backup/restore testing, and related report/demo sections.
-- Both team members review the report, validate the database, and contribute to the final demonstration.
+**Jacob Lutt**
+- Indexing and performance evaluation.
+- Database backup and restoration.
+- Related report and demonstration sections.
 
-## Evidence to add before submission
-Add screenshots showing the created tables and records, successful allowed actions, denied unauthorized actions, before/after query plans, and a successful restore with verification. Caption and explain each screenshot in the final report.
+**Both Members**
+- Database testing and verification.
+- Final report review.
+- Technical demonstration.
+
+## 12. Project Evidence
+
+Screenshots documenting database creation, sample data, permissions, query performance, backup, restoration, and verification are available in `docs/screenshots/`.
+
+## 13. Limitations and Future Work
+
+This project is an educational database-administration implementation. It does not include a web application, a production student information system, cloud hosting, or database replication.
+
+Future improvements could include additional database auditing, automated backup scheduling, and a user-facing registration application.
+
+---
