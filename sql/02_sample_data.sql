@@ -1,45 +1,56 @@
--- CSCE 4355: fictional sample data
+
+-- CSCE 4355: Generate fictional sample data
 -- Run after 01_create_schema.sql.
--- These records are made up and are not real student information.
+-- Generates 10,000 students, 100 courses, and 100,000 registrations.
+-- Run only on an empty database after creating the schema.
 
-INSERT INTO students (first_name, last_name, email, major) VALUES
-('Ava', 'Brooks', 'ava.brooks@example.edu', 'Computer Science'),
-('Noah', 'Reed', 'noah.reed@example.edu', 'Information Technology'),
-('Mia', 'Patel', 'mia.patel@example.edu', 'Computer Science'),
-('Ethan', 'Cruz', 'ethan.cruz@example.edu', 'Cybersecurity'),
-('Sofia', 'Nguyen', 'sofia.nguyen@example.edu', 'Information Technology'),
-('Liam', 'Morgan', 'liam.morgan@example.edu', 'Computer Science'),
-('Isabella', 'Price', 'isabella.price@example.edu', 'Data Science'),
-('Lucas', 'Bennett', 'lucas.bennett@example.edu', 'Cybersecurity'),
-('Amara', 'Johnson', 'amara.johnson@example.edu', 'Data Science'),
-('Mason', 'Rivera', 'mason.rivera@example.edu', 'Computer Science');
+-- Generate 10,000 fictional students.
+INSERT INTO students (first_name, last_name, email, major)
+SELECT
+    'Student',
+    'Number' || n,
+    'student' || LPAD(n::TEXT, 5, '0') || '@example.edu',
+    CASE (n % 4)
+        WHEN 0 THEN 'Computer Science'
+        WHEN 1 THEN 'Information Technology'
+        WHEN 2 THEN 'Cybersecurity'
+        ELSE 'Data Science'
+    END
+FROM generate_series(1, 10000) AS n;
 
-INSERT INTO courses (course_code, course_name, credits) VALUES
-('CSCE 1010', 'Introduction to Computing', 3),
-('CSCE 2100', 'Computer Organization', 3),
-('CSCE 3110', 'Data Structures', 3),
-('CSCE 4355', 'Database Administration', 3),
-('CSCE 3600', 'Systems Programming', 3),
-('CSCE 4210', 'Database Systems', 3);
+-- Generate 100 courses.
+INSERT INTO courses (course_code, course_name, credits)
+SELECT
+    'CSCE' || LPAD(n::TEXT, 4, '0'),
+    'Sample Computer Science Course ' || n,
+    1 + ((n - 1) % 6)
+FROM generate_series(1, 100) AS n;
 
-INSERT INTO registrations (student_id, course_id, semester, registration_date, status) VALUES
-(1, 1, 'Fall 2026', '2026-08-20', 'Enrolled'),
-(1, 3, 'Fall 2026', '2026-08-20', 'Enrolled'),
-(2, 1, 'Fall 2026', '2026-08-21', 'Enrolled'),
-(2, 4, 'Fall 2026', '2026-08-21', 'Enrolled'),
-(3, 3, 'Fall 2026', '2026-08-21', 'Enrolled'),
-(3, 4, 'Fall 2026', '2026-08-21', 'Enrolled'),
-(4, 2, 'Fall 2026', '2026-08-22', 'Enrolled'),
-(4, 5, 'Fall 2026', '2026-08-22', 'Enrolled'),
-(5, 1, 'Fall 2026', '2026-08-22', 'Enrolled'),
-(5, 6, 'Fall 2026', '2026-08-22', 'Enrolled'),
-(6, 3, 'Fall 2026', '2026-08-23', 'Enrolled'),
-(6, 4, 'Fall 2026', '2026-08-23', 'Enrolled'),
-(7, 4, 'Fall 2026', '2026-08-23', 'Enrolled'),
-(7, 6, 'Fall 2026', '2026-08-23', 'Enrolled'),
-(8, 2, 'Fall 2026', '2026-08-24', 'Enrolled'),
-(8, 5, 'Fall 2026', '2026-08-24', 'Enrolled'),
-(9, 4, 'Fall 2026', '2026-08-24', 'Enrolled'),
-(9, 6, 'Fall 2026', '2026-08-24', 'Enrolled'),
-(10, 1, 'Fall 2026', '2026-08-25', 'Enrolled'),
-(10, 3, 'Fall 2026', '2026-08-25', 'Enrolled');
+-- Generate 10 registrations for each student.
+-- Total: 100,000 registrations.
+INSERT INTO registrations
+    (student_id, course_id, semester, registration_date, status)
+SELECT
+    s.student_id,
+    ((s.student_id - 1) * 10 + c.course_number - 1) % 100 + 1,
+    'Fall 2026',
+    CURRENT_DATE - ((s.student_id + c.course_number) % 365),
+    CASE
+        WHEN c.course_number % 3 = 0 THEN 'Completed'
+        WHEN c.course_number % 3 = 1 THEN 'Enrolled'
+        ELSE 'Dropped'
+    END
+FROM students s
+CROSS JOIN generate_series(1, 10) AS c(course_number);
+
+-- Update PostgreSQL statistics for query planning.
+ANALYZE students;
+ANALYZE courses;
+ANALYZE registrations;
+
+-- Verify generated record counts.
+SELECT
+    (SELECT COUNT(*) FROM students) AS total_students,
+    (SELECT COUNT(*) FROM courses) AS total_courses,
+    (SELECT COUNT(*) FROM registrations) AS total_registrations;
+
